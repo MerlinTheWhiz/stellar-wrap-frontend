@@ -17,7 +17,7 @@ export function ShareCard({
   vibePercentage 
 }: ShareCardProps) {
   return (
-    <div className="relative w-full h-full overflow-hidden flex items-center justify-center" style={{ backgroundColor: 'var(--color-theme-background)' }}>
+    <div className="relative w-full h-full overflow-hidden flex items-center justify-center bg-theme-background">
       {/* Dark gradient background */}
       <div className="absolute inset-0 bg-gradient-to-br from-black via-black to-black opacity-60" />
       

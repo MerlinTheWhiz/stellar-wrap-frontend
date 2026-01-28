@@ -1,27 +1,94 @@
 "use client";
 
 import { motion } from 'motion/react';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { Home, ChevronRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ProgressIndicator } from '../components/ProgressIndicator';
+import { useWrapStore } from '../store/wrapStore';
+import { mockData } from '../data/mockData';
 
 export default function LoadingScreen() {
   const router = useRouter();
+  const { setStatus, setResult, setError } = useWrapStore();
 
-  const handleComplete = () => {
+  const handleComplete = useCallback(() => {
     router.push('/persona');
-  };
+  }, [router]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      handleComplete();
-    }, 3500);
-    return () => clearTimeout(timer);
-  }, []);
+    let isMounted = true;
+
+    const loadWrap = async () => {
+      try {
+        setStatus('loading');
+        setError(null);
+
+        // TODO: replace this with a real API/contract call using `address`
+        // For now we hydrate from mockData to keep the flow working.
+        const result = {
+          username: mockData.username,
+          totalTransactions: mockData.transactions,
+          percentile: mockData.percentile,
+          dapps: mockData.dapps.map((dapp) => ({
+            name: dapp.name,
+            interactions: dapp.transactions,
+            color: dapp.color,
+            gradient: dapp.gradient,
+          })),
+          vibes: mockData.vibes,
+          persona: mockData.persona,
+          personaDescription: mockData.personaDescription,
+        };
+
+        if (!isMounted) return;
+
+        setResult(result);
+        setStatus('ready');
+
+        // small delay for animation before continuing
+        setTimeout(() => {
+          if (isMounted) {
+            handleComplete();
+          }
+        }, 800);
+      } catch (error: unknown) {
+        if (!isMounted) return;
+        setStatus('error');
+        if (error instanceof Error) {
+          setError(error.message);
+        } else {
+          setError('Failed to load wrap data');
+        }
+        // Fallback: still navigate so user isn’t stuck
+        setTimeout(() => {
+          if (isMounted) {
+            handleComplete();
+          }
+        }, 1200);
+      }
+    };
+
+    loadWrap();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [setError, setResult, setStatus, handleComplete]);
+
+  const starConfigs = useMemo(
+    () =>
+      Array.from({ length: 30 }, (_, i) => ({
+        left: (i * 13) % 100,
+        top: (i * 29) % 100,
+        duration: 3 + (i % 5),
+        delay: (i % 6),
+      })),
+    []
+  );
 
   return (
-    <div className="relative w-full min-h-screen h-screen overflow-hidden flex items-center justify-center" style={{ backgroundColor: 'var(--color-theme-background)' }}>
+    <div className="relative w-full min-h-screen h-screen overflow-hidden flex items-center justify-center bg-theme-background">
       
       <ProgressIndicator 
         currentStep={3} 
@@ -108,13 +175,13 @@ export default function LoadingScreen() {
         />
       </div>
 
-      {[...Array(30)].map((_, i) => (
+      {starConfigs.map((cfg, i) => (
         <motion.div
           key={i}
           className="absolute w-1 h-1 rounded-full"
           style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
+            left: `${cfg.left}%`,
+            top: `${cfg.top}%`,
             backgroundColor: 'var(--color-theme-primary)',
           }}
           animate={{
@@ -123,9 +190,9 @@ export default function LoadingScreen() {
             scale: [0, 1, 0],
           }}
           transition={{
-            duration: 3 + Math.random() * 2,
+            duration: cfg.duration,
             repeat: Infinity,
-            delay: Math.random() * 3,
+            delay: cfg.delay,
           }}
         />
       ))}

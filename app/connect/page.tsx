@@ -4,28 +4,35 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Wallet, Copy } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useWrapperStore } from '../store/useWrapperStore';
+import { useWrapStore } from '../store/wrapStore';
 import { connectFreighter } from '../utils/walletConnect';
 import { ProgressIndicator } from '../components/ProgressIndicator';
 
 export default function ConnectPage() {
   const router = useRouter();
-  const { setAddress, setConnecting, setError, error, isConnecting } = useWrapperStore();
+  const { setAddress, setError, setStatus } = useWrapStore();
   const [walletAddress, setWalletAddress] = useState('');
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [error, setLocalError] = useState<string | null>(null);
 
   const handleFreighterConnect = async () => {
-    setConnecting(true);
-    setError(null);
+    setIsConnecting(true);
+    setLocalError(null);
+    setStatus('loading');
 
     try {
       const publicKey = await connectFreighter();
       setAddress(publicKey);
+      setError(null);
       router.push('/loading');
-    } catch (err: any) {
-      const errorMessage = err.message || 'Failed to connect wallet';
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to connect wallet';
       setError(errorMessage);
+      setLocalError(errorMessage);
+      setStatus('error');
     } finally {
-      setConnecting(false);
+      setIsConnecting(false);
     }
   };
 
@@ -39,6 +46,7 @@ export default function ConnectPage() {
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setWalletAddress(e.target.value);
+    setLocalError(null);
     setError(null);
   };
 
@@ -46,8 +54,9 @@ export default function ConnectPage() {
     try {
       const text = await navigator.clipboard.readText();
       setWalletAddress(text);
+      setLocalError(null);
       setError(null);
-    } catch (err) {
+    } catch {
       setError('Failed to paste from clipboard');
     }
   };
@@ -61,6 +70,7 @@ export default function ConnectPage() {
     setWalletAddress(demoAddress);
     setTimeout(() => {
       setAddress(demoAddress);
+      setStatus('loading');
       router.push('/loading');
     }, 100);
   };
@@ -70,7 +80,7 @@ export default function ConnectPage() {
   };
 
   return (
-    <div className="relative w-full min-h-screen h-screen overflow-hidden flex items-center justify-center" style={{ backgroundColor: 'var(--color-theme-background)' }}>
+    <div className="relative w-full min-h-screen h-screen overflow-hidden flex items-center justify-center bg-theme-background">
       {/* Progress Indicator */}
       <ProgressIndicator 
         currentStep={2} 
@@ -323,7 +333,7 @@ export default function ConnectPage() {
 
             <div className="mt-6 pt-6 border-t border-white/10">
               <p className="text-xs sm:text-sm text-white/50 text-center mb-3">
-                Don't have a Stellar wallet?{' '}
+                Don&apos;t have a Stellar wallet?{' '}
                 <a 
                   href="https://stellar.org/wallets" 
                   target="_blank" 

@@ -1,0 +1,14 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🔍 Running lint before commit..."
+npm run lint
+
+status=$?
+
+if [ $status -ne 0 ]; then
+  echo
+  echo "✖ Lint failed. Fix the issues (format/code) before committing."
+  exit $status
+fi
+

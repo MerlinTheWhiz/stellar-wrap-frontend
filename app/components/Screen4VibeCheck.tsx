@@ -1,11 +1,13 @@
 "use client"
 
 import { motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { TrendingUp, Palette, Code } from 'lucide-react';
 
+type VibeIconKey = 'defi' | 'nft' | 'dev';
+
 interface VibeData {
-  type: string;
+  type: VibeIconKey | string;
   percentage: number;
   color: string;
   label: string;
@@ -16,32 +18,35 @@ interface Screen4VibeCheckProps {
 }
 
 // Icon mapping for different vibe types
-const vibeIcons: Record<string, any> = {
+const vibeIcons: Record<VibeIconKey, React.ComponentType<{ className?: string }>> = {
   defi: TrendingUp,
   nft: Palette,
   dev: Code,
 };
 
 export function Screen4VibeCheck({ vibes }: Screen4VibeCheckProps) {
-  const [blobShapes, setBlobShapes] = useState<any[]>([]);
+  const blobShapes = useMemo(
+    () =>
+      vibes.map((vibe, index) => {
+        const baseSize = (vibe.percentage / 100) * 250 + 100;
+        return {
+          ...vibe,
+          size: baseSize,
+          x: (index - 1) * 200,
+          y: 0,
+          rotate: 30 * index,
+        };
+      }),
+    [vibes]
+  );
 
-  useEffect(() => {
-    // Generate organic blob shapes based on percentages
-    const shapes = vibes.map((vibe, index) => {
-      const baseSize = (vibe.percentage / 100) * 250 + 100;
-      return {
-        ...vibe,
-        size: baseSize,
-        x: (index - 1) * 200,
-        y: 0,
-        rotate: Math.random() * 360,
-      };
-    });
-    setBlobShapes(shapes);
-  }, [vibes]);
+  const blobAnimationDurations = useMemo(
+    () => blobShapes.map((_, index) => 4 + (index % 3)),
+    [blobShapes]
+  );
 
   return (
-    <div className="relative w-full h-full overflow-hidden flex" style={{ backgroundColor: 'var(--color-theme-background)' }}>
+    <div className="relative w-full h-full overflow-hidden flex bg-theme-background">
       {/* Dark gradient background */}
       <div className="absolute inset-0 bg-gradient-to-br from-black via-black to-black opacity-60" />
       
@@ -86,7 +91,7 @@ export function Screen4VibeCheck({ vibes }: Screen4VibeCheckProps) {
 
             <div className="space-y-3 sm:space-y-4 md:space-y-6">
               {vibes.map((vibe, index) => {
-                const Icon = vibeIcons[vibe.type] || TrendingUp;
+                const Icon = vibeIcons[vibe.type as VibeIconKey] ?? TrendingUp;
                 return (
                   <motion.div
                     key={vibe.type}
@@ -168,7 +173,7 @@ export function Screen4VibeCheck({ vibes }: Screen4VibeCheckProps) {
             {/* Animated blobs with icons */}
             <div className="relative w-full h-full flex items-center justify-center">
               {blobShapes.map((blob, index) => {
-                const Icon = vibeIcons[blob.type] || TrendingUp;
+                const Icon = vibeIcons[blob.type as VibeIconKey] ?? TrendingUp;
                 return (
                   <motion.div
                     key={blob.type}
@@ -201,7 +206,7 @@ export function Screen4VibeCheck({ vibes }: Screen4VibeCheckProps) {
                         rotate: [blob.rotate, blob.rotate + 15, blob.rotate],
                       }}
                       transition={{
-                        duration: 4 + Math.random() * 2,
+                        duration: blobAnimationDurations[index] ?? 5,
                         repeat: Infinity,
                         ease: "easeInOut",
                         delay: index * 0.5,
@@ -218,14 +223,14 @@ export function Screen4VibeCheck({ vibes }: Screen4VibeCheckProps) {
                       />
                       
                       {/* Icon in center */}
-                      <div className="relative z-10 flex items-center justify-center">
-                        <Icon 
-                          className="text-white" 
-                          style={{ 
-                            width: blob.size * 0.3,
-                            height: blob.size * 0.3,
-                          }} 
-                        />
+                      <div
+                        className="relative z-10 flex items-center justify-center"
+                        style={{
+                          width: blob.size * 0.3,
+                          height: blob.size * 0.3,
+                        }}
+                      >
+                        <Icon className="text-white w-full h-full" />
                       </div>
                     </motion.div>
                   </motion.div>

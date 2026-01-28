@@ -80,3 +80,95 @@ Our immediate focus is on delivering a polished MVP for the community:
 * ✅ Developing the persona assignment algorithm.
 * ✅ Building the dynamic social media card generator.
 * ✅ Live public release for community testing.
+
+---
+
+## 🧾 Commit / CL format
+
+Use a Conventional Commit–style format for all change lists (CLs) in this repo:
+
+```text
+<type>(<scope>): <short summary in present tense>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+### Types
+
+- **feat**: new user-facing feature (UI, flow, interaction)
+- **fix**: bug fix (visual, logic, or integration)
+- **refactor**: code refactor that doesn’t change behavior
+- **style**: purely visual changes (spacing, colors, typography) with no behavior change
+- **chore**: tooling, configs, dependency bumps, project plumbing
+- **docs**: documentation only (README, comments)
+- **test**: adding or updating tests only
+
+### Scopes (suggested)
+
+Use a small, descriptive scope in parentheses to indicate the area you touched. Examples for this project:
+
+- **landing**: landing hero, CTA (`LandingPage`, `page.tsx`)
+- **connect**: `/connect` page and wallet flow
+- **loading**: `/loading` page and wrap animation
+- **vibe-check**: `/vibe-check` page, vibes visualization
+- **persona**: `/persona` archetype reveal
+- **share**: `/share` page, share card and menus
+- **store**: Zustand stores (`wrapStore`, etc.)
+- **theme**: `globals.css`, Tailwind theme tokens
+- **layout**: `app/layout.tsx`, root shell and providers
+- **utils**: helpers like `walletConnect.ts`
+
+If a scope doesn’t fit, you can omit it: `feat: add keyboard shortcuts`.
+
+### Examples
+
+- **Single-file feature**
+
+```text
+feat(landing): add weekly/monthly/yearly period selector
+```
+
+- **Cross-page flow change**
+
+```text
+feat(flow): wire connect -> loading -> persona with wrap store
+```
+
+- **Bug fix**
+
+```text
+fix(connect): show error when Freighter is missing instead of hanging
+```
+
+- **Visual tweak**
+
+```text
+style(persona): align oracle heading with progress indicator
+```
+
+- **Tooling / config**
+
+```text
+chore(store): introduce canonical wrap store for frontend data
+```
+
+### Body and footers (optional)
+
+Use the body to add context when needed:
+
+```text
+feat(share): use canonical wrap data in share card
+
+- read wrap data from useWrapStore
+- keep mockData only in loading for now
+```
+
+For breaking changes or references:
+
+```text
+feat(store): remove legacy wrapperStore in favor of wrapStore
+
+BREAKING CHANGE: wrapperStore is no longer exported; update imports to useWrapStore.
+```

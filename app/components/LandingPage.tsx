@@ -1,21 +1,27 @@
 "use client"
 
 import { motion } from 'framer-motion';
-import { Layers, Network, Database, Link2, Box, Cpu } from 'lucide-react';
+import { Box, Database } from 'lucide-react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ColorToggle } from './ColorToggle';
+import { useWrapStore, WrapPeriod } from '../store/wrapStore';
 
 export function LandingPage() {
   const router = useRouter();
-  const [selectedPeriod, setSelectedPeriod] = useState<'weekly' | 'monthly' | 'yearly'>('yearly');
+  const { period, setPeriod, reset } = useWrapStore();
+  const [selectedPeriod, setSelectedPeriod] = useState<WrapPeriod>(period);
   
   const handleStart = () => {
+    // Reset any existing wrap data when starting a new session,
+    // but preserve the currently selected period.
+    reset();
+    setPeriod(selectedPeriod);
     router.push('/connect');
   };
 
   return (
-    <div className="relative w-full min-h-screen h-screen overflow-hidden" style={{ backgroundColor: 'var(--color-theme-background)' }}>
+    <div className="relative w-full min-h-screen h-screen overflow-hidden bg-theme-background">
       {/* Deep space gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/20" />
       
@@ -393,15 +399,15 @@ export function LandingPage() {
           <div className="flex items-center gap-1 backdrop-blur-xl rounded-xl md:rounded-2xl p-1 md:p-2 border border-white/10"
             style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
           >
-            {(['weekly', 'monthly', 'yearly'] as const).map((period) => (
+            {(['weekly', 'monthly', 'yearly'] as const).map((periodOption) => (
               <motion.button
-                key={period}
-                onClick={() => setSelectedPeriod(period)}
+                key={periodOption}
+                onClick={() => setSelectedPeriod(periodOption)}
                 className="relative px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-lg md:rounded-xl font-black tracking-tight text-sm sm:text-base md:text-lg"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.98 }}
               >
-                {selectedPeriod === period && (
+                {selectedPeriod === periodOption && (
                   <motion.div
                     layoutId="period-bg"
                     className="absolute inset-0 rounded-lg md:rounded-xl"
@@ -410,9 +416,9 @@ export function LandingPage() {
                   />
                 )}
                 <span className={`relative z-10 uppercase ${
-                  selectedPeriod === period ? 'text-black' : 'text-white/50'
+                  selectedPeriod === periodOption ? 'text-black' : 'text-white/50'
                 }`}>
-                  {period}
+                  {periodOption}
                 </span>
               </motion.button>
             ))}
@@ -460,8 +466,7 @@ export function LandingPage() {
                 }}
               />
               
-              <div className="relative px-8 py-4 sm:px-12 sm:py-6 md:px-20 md:py-8 rounded-xl md:rounded-2xl"
-                style={{ backgroundColor: 'var(--color-theme-background)' }}
+              <div className="relative px-8 py-4 sm:px-12 sm:py-6 md:px-20 md:py-8 rounded-xl md:rounded-2xl bg-theme-background"
               >
                 <div className="flex items-center gap-3 sm:gap-4 md:gap-6">
                   <div className="flex flex-col items-start">

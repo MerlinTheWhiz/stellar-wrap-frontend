@@ -5,8 +5,8 @@
   --foreground: #ededed;
 
   /* Theme Variables - Default (Green) */
-  --color-theme-primary: #1db954;
-  --color-theme-primary-rgb: 29, 185, 84;
+  --color-theme-primary: #054020;
+  --color-theme-primary-rgb: 5, 64, 32;
   --color-theme-background: #000000;
 }
 
@@ -17,6 +17,12 @@
   --font-mono: var(--font-geist-mono);
 
   --color-theme-primary: var(--color-theme-primary);
+  --color-theme-background: var(--color-theme-background);
+}
+
+/* Utility class for theme background */
+.bg-theme-background {
+  background-color: var(--color-theme-background);
 }
 
 body {

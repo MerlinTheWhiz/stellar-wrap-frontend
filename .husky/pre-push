@@ -1,0 +1,14 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🏗  Running build before push..."
+npm run build
+
+status=$?
+
+if [ $status -ne 0 ]; then
+  echo
+  echo "✖ Build failed. Fix errors before pushing to GitHub."
+  exit $status
+fi
+

@@ -1,12 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useWrapperStore } from "../store/useWrapperStore";
+import { useWrapStore } from "../store/wrapStore";
 import { DappCard } from "./DappCard";
 
 export function TopDapps() {
-  const { data } = useWrapperStore();
-  const topDapps = data.topDapps;
+  const { result } = useWrapStore();
+  const topDapps = result?.dapps ?? [];
 
   const container = {
     hidden: { opacity: 0 },
