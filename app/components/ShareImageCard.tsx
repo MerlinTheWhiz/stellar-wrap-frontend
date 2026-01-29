@@ -6,140 +6,251 @@ interface ShareImageCardProps {
   themeColor: string;
 }
 
-/**
- * ShareImageCard - 1:1 aspect ratio card optimized for social media sharing
- * This component is rendered off-screen and captured by html2canvas for image export
- * Design: High-contrast, large text, visible branding for Instagram/Twitter feeds
- */
 export function ShareImageCard({ themeColor }: ShareImageCardProps) {
-  const { persona, transactions, dapps, vibes } = mockData;
-  const topDapp = dapps[0];
+  const { persona, transactions, username, vibes } = mockData;
   const topVibe = vibes[0];
+
+  // Convert any color format to rgb values for gradient
+  const getRgbValues = (color: string): string => {
+    // Handle rgb() format
+    const rgbMatch = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+    if (rgbMatch) {
+      return `${rgbMatch[1]}, ${rgbMatch[2]}, ${rgbMatch[3]}`;
+    }
+
+    // Handle hex format
+    if (color.startsWith("#")) {
+      const hex = color.replace("#", "");
+      const r = parseInt(hex.substring(0, 2), 16);
+      const g = parseInt(hex.substring(2, 4), 16);
+      const b = parseInt(hex.substring(4, 6), 16);
+      return `${r}, ${g}, ${b}`;
+    }
+
+    // Fallback
+    return "29, 185, 84";
+  };
+
+  const rgbValues = getRgbValues(themeColor);
 
   return (
     <div
-      className="relative flex flex-col justify-between p-12"
       style={{
         width: "1080px",
         height: "1080px",
-        background: "linear-gradient(145deg, #0a0a0a 0%, #1a1a1a 100%)",
+        position: "relative",
+        padding: "24px",
+        backgroundColor: "#020202",
       }}
     >
-      {/* Diagonal pattern overlay */}
+      {/* Main card container matching ShareCard preview  */}
       <div
-        className="absolute inset-0 opacity-10"
         style={{
-          backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 20px, ${themeColor} 20px, ${themeColor} 22px)`,
+          position: "relative",
+          width: "100%",
+          height: "100%",
+          aspectRatio: "1",
+          borderRadius: "40px",
+          overflow: "hidden",
+          border: "1px solid rgba(255, 255, 255, 0.2)",
+          background: `linear-gradient(to bottom right, rgba(${rgbValues}, 0.2), rgba(0, 0, 0, 0.8))`,
         }}
-      />
-
-      {/* Top Section - Archetype */}
-      <div className="relative z-10 space-y-4">
-        <div className="text-white/60 text-2xl font-bold tracking-wide">
-          MY STELLAR ARCHETYPE
+      >
+        {/* Card header */}
+        <div style={{ padding: "32px" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              marginBottom: "20px",
+            }}
+          >
+            <div
+              style={{
+                width: "12px",
+                height: "12px",
+                borderRadius: "50%",
+                backgroundColor: themeColor,
+              }}
+            />
+            <span
+              style={{
+                fontSize: "16px",
+                fontWeight: "900",
+                color: "rgba(255, 255, 255, 0.7)",
+                letterSpacing: "0.2em",
+                lineHeight: "1",
+                marginTop: "-15px",
+              }}
+            >
+              STELLAR WRAPPED 2026
+            </span>
+          </div>
+          <h2
+            style={{
+              fontSize: "30px",
+              fontWeight: "900",
+              color: "white",
+              marginBottom: "8px",
+            }}
+          >
+            @{username}
+          </h2>
         </div>
-        <h1
-          className="text-8xl font-black tracking-tight leading-none"
+
+        {/* Stats */}
+        <div
           style={{
-            backgroundImage: `linear-gradient(180deg, #ffffff 0%, ${themeColor} 100%)`,
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
+            paddingLeft: "32px",
+            paddingRight: "32px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "16px",
           }}
         >
-          {persona}
-        </h1>
-      </div>
-
-      {/* Middle Section - Stats Grid */}
-      <div className="relative z-10 space-y-8">
-        {/* Total Transactions */}
-        <div
-          className="backdrop-blur-sm rounded-3xl p-8 border border-white/20"
-          style={{ backgroundColor: "rgba(255, 255, 255, 0.05)" }}
-        >
-          <p className="text-xl font-bold text-white/60 mb-3">
-            TOTAL TRANSACTIONS
-          </p>
-          <p className="text-9xl font-black text-white leading-none">
-            {transactions}
-          </p>
-        </div>
-
-        {/* Top DApp */}
-        <div
-          className="backdrop-blur-sm rounded-3xl p-8 border border-white/20 flex items-center gap-6"
-          style={{ backgroundColor: "rgba(255, 255, 255, 0.05)" }}
-        >
+          {/* Total Transactions */}
           <div
-            className="w-24 h-24 rounded-2xl flex items-center justify-center text-4xl font-black text-white"
-            style={{ background: topDapp.gradient }}
+            style={{
+              backdropFilter: "blur(4px)",
+              borderRadius: "16px",
+              padding: "24px",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
+              backgroundColor: "rgba(255, 255, 255, 0.05)",
+            }}
           >
-            {topDapp.name[0]}
-          </div>
-          <div className="flex-1">
-            <p className="text-xl font-bold text-white/60 mb-2">
-              FAVORITE DAPP
-            </p>
-            <p className="text-5xl font-black text-white mb-1">
-              {topDapp.name}
-            </p>
-            <p className="text-2xl font-bold text-white/60">
-              {topDapp.transactions} transactions
-            </p>
-          </div>
-        </div>
-
-        {/* Top Vibe */}
-        <div
-          className="backdrop-blur-sm rounded-3xl p-8 border border-white/20"
-          style={{ backgroundColor: "rgba(255, 255, 255, 0.05)" }}
-        >
-          <p className="text-xl font-bold text-white/60 mb-3">TOP VIBE</p>
-          <div className="flex items-baseline gap-4">
-            <p className="text-6xl font-black text-white">{topVibe.label}</p>
             <p
-              className="text-5xl font-black"
               style={{
-                backgroundImage: topVibe.color,
+                fontSize: "14px",
+                fontWeight: "700",
+                color: "rgba(255, 255, 255, 0.6)",
+              }}
+            >
+              Total Transactions
+            </p>
+            <p
+              style={{
+                fontSize: "60px",
+                fontWeight: "900",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
               }}
             >
-              {topVibe.percentage}%
+              {transactions}
+            </p>
+          </div>
+
+          {/* Persona */}
+          <div
+            style={{
+              backdropFilter: "blur(4px)",
+              borderRadius: "16px",
+              padding: "24px",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
+              backgroundColor: "rgba(255, 255, 255, 0.05)",
+            }}
+          >
+            <p
+              style={{
+                fontSize: "14px",
+                fontWeight: "700",
+                color: "rgba(255, 255, 255, 0.6)",
+                marginBottom: "8px",
+              }}
+            >
+              Persona
+            </p>
+            <p
+              style={{
+                fontSize: "30px",
+                fontWeight: "900",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              {persona}
+            </p>
+          </div>
+
+          {/* Top Vibe */}
+          <div
+            style={{
+              backdropFilter: "blur(4px)",
+              borderRadius: "16px",
+              padding: "24px",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
+              backgroundColor: "rgba(255, 255, 255, 0.05)",
+            }}
+          >
+            <p
+              style={{
+                fontSize: "14px",
+                fontWeight: "700",
+                color: "rgba(255, 255, 255, 0.6)",
+                marginBottom: "8px",
+              }}
+            >
+              Top Vibe
+            </p>
+            <p
+              style={{
+                fontSize: "24px",
+                fontWeight: "900",
+                color: "white",
+              }}
+            >
+              {topVibe.percentage}% {topVibe.label}
             </p>
           </div>
         </div>
-      </div>
 
-      {/* Bottom Section - Branding */}
-      <div className="relative z-10 flex items-center justify-between">
-        <div className="text-white/40 text-2xl font-bold tracking-wider">
-          stellar.org/wrapped
-        </div>
+        {/* Footer */}
         <div
-          className="text-5xl font-black tracking-tight"
           style={{
-            backgroundImage: `linear-gradient(90deg, ${themeColor} 0%, #ffffff 100%)`,
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
+            position: "absolute",
+            bottom: "32px",
+            left: "32px",
+            right: "32px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
           }}
         >
-          STELLAR WRAPPED 2026
+          <div
+            style={{
+              fontSize: "12px",
+              fontWeight: "900",
+              color: "rgba(255, 255, 255, 0.5)",
+            }}
+          >
+            stellar.org/wrapped
+          </div>
+          <div
+            style={{
+              width: "40px",
+              height: "40px",
+              borderRadius: "12px",
+              backdropFilter: "blur(4px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              border: "1px solid rgba(255, 255, 255, 0.2)",
+              backgroundColor: "rgba(255, 255, 255, 0.1)",
+            }}
+          >
+            <div
+              style={{
+                width: "20px",
+                height: "20px",
+                borderRadius: "8px",
+                backgroundColor: themeColor,
+              }}
+            />
+          </div>
         </div>
       </div>
-
-      {/* Ambient glow effect */}
-      <div
-        className="absolute top-1/4 right-1/4 w-96 h-96 rounded-full blur-[120px] opacity-20 pointer-events-none"
-        style={{ backgroundColor: themeColor }}
-      />
-      <div
-        className="absolute bottom-1/4 left-1/4 w-96 h-96 rounded-full blur-[120px] opacity-20 pointer-events-none"
-        style={{ backgroundColor: themeColor }}
-      />
     </div>
   );
 }

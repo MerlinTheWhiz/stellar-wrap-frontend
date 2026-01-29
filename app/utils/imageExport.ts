@@ -8,40 +8,71 @@ import html2canvas from "html2canvas";
  */
 export async function downloadShareImage(element: HTMLElement): Promise<void> {
   try {
-    // Generate high-quality canvas from the element
-    const canvas = await html2canvas(element, {
-      scale: 3, // 3x resolution for high quality on social media
+    // Step 1: Clone the element
+    const clone = element.cloneNode(true) as HTMLElement;
+    clone.style.position = "absolute";
+    clone.style.left = "-9999px";
+    clone.style.top = "0";
+    document.body.appendChild(clone);
+
+    // Step 2: Get all elements and force computed styles
+    const processElement = (original: Element, cloned: Element) => {
+      if (original instanceof HTMLElement && cloned instanceof HTMLElement) {
+        const computed = window.getComputedStyle(original);
+        
+        // List of all color-related properties to override
+        const colorProperties = [
+          'backgroundColor',
+          'color',
+          'borderColor',
+          'borderTopColor',
+          'borderRightColor',
+          'borderBottomColor',
+          'borderLeftColor',
+          'outlineColor',
+        ];
+
+        // Apply computed RGB values to override any oklab/oklch
+        colorProperties.forEach(prop => {
+          const kebabProp = prop.replace(/[A-Z]/g, m => `-${m.toLowerCase()}`);
+          const value = computed.getPropertyValue(kebabProp);
+          
+          if (value && value !== 'rgba(0, 0, 0, 0)' && value !== 'transparent') {
+            cloned.style.setProperty(kebabProp, value, 'important');
+          }
+        });
+
+        // Handle gradient backgrounds specially
+        const bgImage = computed.backgroundImage;
+        if (bgImage && bgImage !== 'none') {
+          cloned.style.setProperty('background-image', bgImage, 'important');
+        }
+      }
+
+      // Recursively process children
+      for (let i = 0; i < original.children.length; i++) {
+        processElement(original.children[i], cloned.children[i]);
+      }
+    };
+
+    // Process the clone
+    processElement(element, clone);
+
+    // Step 3: Generate canvas from the processed clone
+    const canvas = await html2canvas(clone, {
+      scale: 3,
       backgroundColor: "#020202",
-      useCORS: true, // Enable cross-origin images if any
-      allowTaint: true, // Allow cross-origin images
-      logging: false, // Disable console logs
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
       width: 1080,
       height: 1080,
-      onclone: (clonedDoc) => {
-        // Convert any oklab/oklch colors to standard formats before rendering
-        const clonedElement =
-          clonedDoc.querySelector('[style*="oklab"]') ||
-          clonedDoc.querySelector('[style*="oklch"]');
-        if (clonedElement) {
-          // Force recomputation of styles to use computed RGB values
-          const allElements = clonedDoc.querySelectorAll("*");
-          allElements.forEach((el) => {
-            if (el instanceof HTMLElement) {
-              const computedStyle = window.getComputedStyle(el);
-              // Force background color to computed value
-              if (computedStyle.backgroundColor) {
-                el.style.backgroundColor = computedStyle.backgroundColor;
-              }
-              if (computedStyle.color) {
-                el.style.color = computedStyle.color;
-              }
-            }
-          });
-        }
-      },
     });
 
-    // Convert canvas to blob
+    // Clean up the clone
+    document.body.removeChild(clone);
+
+    // Step 4: Convert canvas to blob
     const blob = await new Promise<Blob>((resolve, reject) => {
       canvas.toBlob(
         (blob) => {
@@ -52,11 +83,11 @@ export async function downloadShareImage(element: HTMLElement): Promise<void> {
           }
         },
         "image/png",
-        1.0, // Maximum quality
+        1.0
       );
     });
 
-    // Create download link and trigger download
+    // Step 5: Create download link and trigger download
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;

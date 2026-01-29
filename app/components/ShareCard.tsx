@@ -50,17 +50,8 @@ export function ShareCard({
   };
 
   const handleShareX = async () => {
-    // Download the image first
-    if (shareImageRef.current) {
-      try {
-        await downloadShareImage(shareImageRef.current);
-      } catch (error) {
-        console.error("Download failed:", error);
-      }
-    }
-
     // Open Twitter intent
-    const text = `I'm a ${persona} on Stellar! 🚀 ${transactions} transactions in 2026. #StellarWrapped`;
+    const text = `I'm ${persona} on Stellar! 🚀 ${transactions} transactions in 2026. #StellarWrapped. (Upload your Stellar Wrapped Card manually.)`;
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
     window.open(twitterUrl, "_blank", "width=600,height=500");
   };
@@ -92,7 +83,7 @@ export function ShareCard({
       style={{ backgroundColor: "var(--color-theme-background)" }}
     >
       {/* Dark gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-black via-black to-black opacity-60" />
+      <div className="absolute inset-0 bg-linear-to-br from-black via-black to-black opacity-60" />
 
       {/* Diagonal lines pattern */}
       <div className="absolute inset-0 opacity-5">
@@ -108,7 +99,7 @@ export function ShareCard({
 
       {/* Ambient glow */}
       <motion.div
-        className="absolute w-[600px] h-[600px] rounded-full blur-[150px]"
+        className="absolute w-150 h-150 rounded-full blur-[150px]"
         style={{ backgroundColor: "rgba(var(--color-theme-primary-rgb), 0.2)" }}
         animate={{
           scale: [1, 1.2, 1],

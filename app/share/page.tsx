@@ -44,24 +44,21 @@ export default function ShareCardPage() {
   const [shareOpen, setShareOpen] = useState<boolean>(false);
   const shareMenuRef = useRef<HTMLDivElement | null>(null);
   const shareBtnRef = useRef<HTMLButtonElement | null>(null);
-  const shareImageRef = useRef<HTMLDivElement>(null);
-  const [themeColor, setThemeColor] = useState<string>("#1DB954");
+  const shareImageRef = useRef<HTMLDivElement>(null!);
 
   // Get computed theme color from CSS variable
-  useEffect(() => {
-    // Create a temporary element to get the resolved color value
+  const [themeColor] = useState<string>(() => {
+    if (typeof window === "undefined") return "#1DB954";
+
     const tempDiv = document.createElement("div");
     tempDiv.style.color = "var(--color-theme-primary)";
     document.body.appendChild(tempDiv);
 
-    // Get the computed color (this will be RGB, not oklab)
     const computedColor = window.getComputedStyle(tempDiv).color;
     document.body.removeChild(tempDiv);
 
-    if (computedColor) {
-      setThemeColor(computedColor);
-    }
-  }, []);
+    return computedColor || "#1DB954";
+  });
 
   // --- Share Functionality ---
   const handleShare = (platform: string) => {
@@ -110,7 +107,7 @@ export default function ShareCardPage() {
   }, [shareOpen]);
 
   return (
-    <div className="relative w-full h-screen">
+    <div className="relative w-full h-screen overflow-hidden">
       {/* Off-screen ShareImageCard for html2canvas export */}
       <div
         ref={shareImageRef}
