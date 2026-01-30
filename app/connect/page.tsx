@@ -7,6 +7,9 @@ import { motion } from 'framer-motion';
 import { useWrapStore } from '../store/wrapStore';
 import { connectFreighter } from '../utils/walletConnect';
 import { ProgressIndicator } from '../components/ProgressIndicator';
+import { StrKey } from 'stellar-sdk';
+
+
 
 export default function ConnectPage() {
   const router = useRouter();
@@ -14,7 +17,10 @@ export default function ConnectPage() {
   const [walletAddress, setWalletAddress] = useState("");
   const [isConnecting, setIsConnecting] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
-  
+  const [isValidStellarAddress, setIsValidStellarAddress] = useState<boolean>(false);
+
+
+
   // Refs for focus management
   const mainContentRef = useRef<HTMLDivElement>(null);
   const backButtonRef = useRef<HTMLButtonElement>(null);
@@ -30,6 +36,24 @@ export default function ConnectPage() {
       mainContentRef.current.focus();
     }
   }, []);
+
+
+
+  useEffect(() => {
+    if (!walletAddress) {
+      setIsValidStellarAddress(false);
+      return;
+    }
+
+    const address = walletAddress.trim();
+
+    const isValid =
+      StrKey.isValidEd25519PublicKey(address) ||
+      StrKey.isValidMed25519PublicKey(address); // optional: muxed accounts (M...)
+
+    setIsValidStellarAddress(isValid);
+  }, [walletAddress]);
+
 
   const handleFreighterConnect = async () => {
     setIsConnecting(true);
@@ -61,7 +85,7 @@ export default function ConnectPage() {
     }
 
     // Validate Stellar address format
-    if (!isValidStellarAddress(walletAddress)) {
+    if (!isValidStellarAddress) {
       setLocalError("Invalid wallet address. Please check and try again.");
       setError("Invalid wallet address");
       return;
@@ -160,17 +184,17 @@ export default function ConnectPage() {
       e.preventDefault();
       onBack();
     }
-    
+
     // Handle Tab key for focus trapping
     if (e.key === 'Tab' && mainContentRef.current) {
       const focusableElements = mainContentRef.current.querySelectorAll(
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
       );
-      
+
       if (focusableElements.length > 0) {
         const firstElement = focusableElements[0] as HTMLElement;
         const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
-        
+
         if (e.shiftKey && document.activeElement === firstElement) {
           e.preventDefault();
           lastElement.focus();
@@ -185,7 +209,7 @@ export default function ConnectPage() {
   const errorId = localError ? 'address-error' : undefined;
 
   return (
-    <div 
+    <div
       ref={mainContentRef}
       tabIndex={-1}
       onKeyDown={handlePageKeyDown}
@@ -196,7 +220,7 @@ export default function ConnectPage() {
 
       {/* Background elements */}
       <div className="absolute inset-0 bg-linear-to-br from-black via-black to-black opacity-60" />
-      
+
       {/* Animated grid background */}
       <div className="absolute inset-0 opacity-20">
         <motion.div
@@ -349,7 +373,7 @@ export default function ConnectPage() {
               borderColor: "rgba(var(--color-theme-primary-rgb), 0.3)",
             }}
           >
-            <label 
+            <label
               htmlFor="wallet-address"
               className="block text-sm font-black text-white/70 mb-3 tracking-wider"
             >
@@ -399,7 +423,7 @@ export default function ConnectPage() {
 
             {/* Error Message */}
             {localError && (
-              <div 
+              <div
                 id="address-error"
                 role="alert"
                 aria-live="assertive"
@@ -436,8 +460,8 @@ export default function ConnectPage() {
                   repeat: Infinity,
                 }}
               />
-              
-              <div 
+
+              <div
                 className="relative px-8 py-5 rounded-xl font-black text-lg sm:text-xl tracking-tight transition-all duration-200 flex items-center justify-center gap-3 focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2 focus:ring-offset-black"
                 style={{
                   backgroundColor: isConnecting
