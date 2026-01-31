@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Home, Share2, ChevronRight, Palette } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ReactNode } from "react";
+import { MuteToggle } from "./MuteToggle";
 
 interface StoryShellProps {
   children: ReactNode;
@@ -124,15 +125,22 @@ export function StoryShell({ children, activeSegment = 1 }: StoryShellProps) {
           ))}
         </motion.div>
 
-        {/* Palette Button */}
-        <motion.button
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2 }}
-          className="p-3 rounded-full bg-black/50 border border-[#1DB954]/30 backdrop-blur-xl hover:bg-[#1DB954]/10 hover:border-[#1DB954]/50 transition-all shadow-[0_0_20px_rgba(29,185,84,0.15)]"
-        >
-          <Palette className="w-5 h-5 text-[#1DB954]" />
-        </motion.button>
+
+        <div className="flex items-center gap-2">
+
+            <MuteToggle />
+          {/* Palette Button */}
+          <motion.button
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.35 }}
+            className="p-3 rounded-full bg-black/50 border border-[#1DB954]/30 backdrop-blur-xl hover:bg-[#1DB954]/10 hover:border-[#1DB954]/50 transition-all shadow-[0_0_20px_rgba(29,185,84,0.15)]"
+          >
+            <Palette className="w-5 h-5 text-[#1DB954]" />
+          </motion.button>
+        </div>
+
+
       </div>
 
       {/* Main Content */}

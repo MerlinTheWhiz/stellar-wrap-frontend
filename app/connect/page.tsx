@@ -7,13 +7,17 @@ import { motion } from 'framer-motion';
 import { useWrapStore } from '../store/wrapStore';
 import { connectFreighter } from '../utils/walletConnect';
 import { ProgressIndicator } from '../components/ProgressIndicator';
+import { MuteToggle } from '../components/MuteToggle';
 import { StrKey } from 'stellar-sdk';
+import { useSound } from '../hooks/useSound';
+import { SOUND_NAMES } from '../utils/soundManager';
 
 
 
 export default function ConnectPage() {
   const router = useRouter();
   const { setAddress, setError, setStatus, network } = useWrapStore();
+  const { playSound } = useSound();
   const [walletAddress, setWalletAddress] = useState("");
   const [isConnecting, setIsConnecting] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
@@ -64,6 +68,7 @@ export default function ConnectPage() {
       const publicKey = await connectFreighter(network);
       setAddress(publicKey);
       setError(null);
+      playSound(SOUND_NAMES.SLIDE_WHOOSH);
       router.push("/loading");
     } catch (error: unknown) {
       const errorMessage =
@@ -92,6 +97,7 @@ export default function ConnectPage() {
     }
 
     setAddress(walletAddress.trim());
+    playSound(SOUND_NAMES.SLIDE_WHOOSH);
     router.push("/loading");
   };
 
@@ -126,6 +132,7 @@ export default function ConnectPage() {
     setTimeout(() => {
       setAddress(demoAddress);
       setStatus("loading");
+      playSound(SOUND_NAMES.SLIDE_WHOOSH);
       router.push("/loading");
     }, 100);
   };
@@ -283,6 +290,15 @@ export default function ConnectPage() {
           </span>
         </div>
       </motion.button>
+      
+      <motion.div
+        className="absolute top-6 right-6 md:top-8 md:right-8 z-20"
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <MuteToggle />
+      </motion.div>
 
       {/* Main content */}
       <div className="relative z-10 max-w-2xl w-full mx-auto px-4 sm:px-6 md:px-8">

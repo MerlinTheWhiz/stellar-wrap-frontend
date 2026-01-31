@@ -5,6 +5,8 @@ import { downloadShareImage } from "../utils/imageExport";
 import { mintWrap } from "../utils/walletKit";
 import { useWrapStore } from "@/app/store/wrapStore";
 import { toast } from "sonner";
+import { useSound } from "../hooks/useSound";
+import { SOUND_NAMES } from "../utils/soundManager";
 
 interface ShareCardProps {
   username: string;
@@ -27,6 +29,7 @@ export function ShareCard({
   const [isMinting, setIsMinting] = useState(false);
   const [mintSuccess, setMintSuccess] = useState<string | null>(null);
   const { address } = useWrapStore();
+  const { playSound } = useSound();
 
   const handleDownload = async () => {
     if (!shareImageRef.current) return;
@@ -67,6 +70,7 @@ export function ShareCard({
     try {
       const txHash = await mintWrap(address);
       setMintSuccess(txHash);
+      playSound(SOUND_NAMES.MINT_SUCCESS);
       toast.success("Minted successfully!", {
         description: "View your transaction on Stellar Explorer",
         action: {

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Share2 } from "lucide-react";
 import { mockData } from "@/app/data/mockData";
 import { ProgressIndicator } from "@/app/components/ProgressIndicator";
+import { MuteToggle } from "../components/MuteToggle";
 import { ShareCard } from "../components/ShareCard";
 import { ShareImageCard } from "../components/ShareImageCard";
 import { useTheme, themeColors } from "../context/ThemeContext";
@@ -112,6 +113,15 @@ export default function ShareCardPage() {
       />
 
       <ProgressIndicator currentStep={6} totalSteps={6} showNext={false} />
+
+      <motion.div
+        className="absolute top-6 right-6 md:top-8 md:right-8 z-30"
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <MuteToggle />
+      </motion.div>
 
       <div className="absolute bottom-6 left-6 z-30">
         <div className="relative">

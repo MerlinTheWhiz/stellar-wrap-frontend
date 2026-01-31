@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { Screen4VibeCheck } from "@/app/components/Screen4VibeCheck";
 import { ProgressIndicator } from "@/app/components/ProgressIndicator";
 import { ShareButtons } from "@/app/components/ShareButtons";
+import { MuteToggle } from "@/app/components/MuteToggle";
 import { useWrapStore } from "@/app/store/wrapStore";
+import { motion } from "framer-motion";
 
 export default function VibeCheckPage() {
   const router = useRouter();
@@ -22,6 +24,16 @@ export default function VibeCheckPage() {
         onNext={() => router.push("/persona")}
         showNext={true}
       />
+
+
+      <motion.div
+        className="absolute top-6 right-6 md:top-8 md:right-8 z-30"
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <MuteToggle />
+      </motion.div>
 
       <ShareButtons
         title="My Vibe Check - Stellar Wrapped 2026"

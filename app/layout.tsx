@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { DevTool } from "./components/DevTool";
 import { Toaster } from "sonner";
+import { SoundManager } from "./components/SoundManager";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,7 +32,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <SoundManager />
+        </Providers>
         <DevTool />
         <Toaster position="top-right" richColors />
       </body>

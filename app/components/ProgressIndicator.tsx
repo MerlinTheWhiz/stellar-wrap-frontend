@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { Home } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef, KeyboardEvent } from "react";
+import { useSound } from "../hooks/useSound";
+import { SOUND_NAMES } from "../utils/soundManager";
 
 interface ProgressIndicatorProps {
   currentStep: number;
@@ -34,6 +36,7 @@ export function ProgressIndicator({
    const routeMap = routes || DEFAULT_ROUTES;
    const [isMobile, setIsMobile] = useState(false);
   const stepRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const { playSound } = useSound();
 
   useEffect(() => {
      if (typeof window === "undefined") return;
@@ -57,7 +60,10 @@ export function ProgressIndicator({
       if (prevRoute) router.push(prevRoute);
     } else if (direction === 'right' && currentStep < totalSteps) {
       const nextRoute = routeMap[currentStep];
-      if (nextRoute) router.push(nextRoute);
+      if (nextRoute) {
+        playSound(SOUND_NAMES.SLIDE_WHOOSH);
+        router.push(nextRoute);
+      }
     }
   };
 
@@ -67,6 +73,9 @@ export function ProgressIndicator({
       case ' ':
         event.preventDefault();
         if (route && stepIndex + 1 !== currentStep) {
+          if (stepIndex + 1 > currentStep) {
+            playSound(SOUND_NAMES.SLIDE_WHOOSH);
+          }
           router.push(route);
         }
         break;
@@ -76,6 +85,9 @@ export function ProgressIndicator({
         break;
       case 'ArrowRight':
         event.preventDefault();
+        if (route && stepIndex + 1 > currentStep) {
+          playSound(SOUND_NAMES.SLIDE_WHOOSH);
+        }
         handleStepNavigation('right');
         break;
       case 'Home':
@@ -147,6 +159,10 @@ export function ProgressIndicator({
 
           const handleClick = () => {
             if (isClickable && route) {
+              // Play slide sound only when navigating forward
+              if (stepNumber > currentStep) {
+                playSound(SOUND_NAMES.SLIDE_WHOOSH);
+              }
               router.push(route);
             }
           };
@@ -214,7 +230,10 @@ export function ProgressIndicator({
       {/* Next button */}
       {showNext && onNext && (
         <motion.button
-          onClick={onNext}
+          onClick={() => {
+            playSound(SOUND_NAMES.SLIDE_WHOOSH);
+            onNext();
+          }}
           onKeyDown={handleNextKeyDown}
           className="absolute bottom-8 right-8 md:bottom-12 md:right-12 z-30 group focus:outline-none focus:ring-2 focus:ring-theme-primary focus:ring-offset-2 focus:ring-offset-black focus:rounded-full"
           initial={{ opacity: 0, scale: 0.8 }}

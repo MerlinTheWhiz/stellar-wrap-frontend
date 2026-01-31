@@ -7,8 +7,11 @@ import { Home, Share2, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { readStreamableValue } from "ai/rsc";
 import { ProgressIndicator } from "../components/ProgressIndicator";
+import { MuteToggle } from "../components/MuteToggle";
 import { useWrapStore } from "../store/wrapStore";
 import { generatePersonaDescription } from "../actions/generate-persona";
+import { useSound } from "../hooks/useSound";
+import { SOUND_NAMES } from "../utils/soundManager";
 
 // --- Asset Mapping ---
 const ARCHETYPE_DATA: Record<string, { description: string }> = {
@@ -134,6 +137,7 @@ export default function ArchetypeReveal(): JSX.Element {
   const controls: ReturnType<typeof useAnimation> = useAnimation();
   const [isFlipped, setIsFlipped] = useState<boolean>(false);
   const [streamedDescription, setStreamedDescription] = useState<string>("");
+  const { playSound } = useSound();
 
   // Menu states
   const [shareOpen, setShareOpen] = useState<boolean>(false); // Share menu
@@ -222,6 +226,8 @@ export default function ArchetypeReveal(): JSX.Element {
         transition: { duration: 0.8, type: "spring" },
       });
 
+      
+      playSound(SOUND_NAMES.CARD_FLIP);
       await controls.start({
         x: [0, -4, 4, -4, 4, 0],
         rotateZ: [0, -1, 1, -1, 1, 0],
@@ -341,6 +347,15 @@ export default function ArchetypeReveal(): JSX.Element {
               </div>
             </motion.button>
           </Link>
+
+          <motion.div
+            className="absolute top-6 right-6 md:top-8 md:right-8 z-30"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <MuteToggle />
+          </motion.div>
 
           {/* Center Title */}
           <div className="absolute top-16 md:top-20 left-1/2 -translate-x-1/2 z-30">

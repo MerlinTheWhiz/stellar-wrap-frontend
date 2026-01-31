@@ -5,16 +5,21 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { Home, ChevronRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ProgressIndicator } from '../components/ProgressIndicator';
+import { MuteToggle } from '../components/MuteToggle';
 import { useWrapStore } from '../store/wrapStore';
 import { mockData } from '../data/mockData';
+import { useSound } from '../hooks/useSound';
+import { SOUND_NAMES } from '../utils/soundManager';
 
 export default function LoadingScreen() {
   const router = useRouter();
   const { setStatus, setResult, setError } = useWrapStore();
+  const { playSound } = useSound();
 
   const handleComplete = useCallback(() => {
+    playSound(SOUND_NAMES.SLIDE_WHOOSH);
     router.push('/persona');
-  }, [router]);
+  }, [router, playSound]);
 
   useEffect(() => {
     let isMounted = true;
@@ -117,8 +122,20 @@ export default function LoadingScreen() {
         </div>
       </motion.button>
 
+      <motion.div
+        className="absolute top-6 right-6 md:top-8 md:right-8 z-30"
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <MuteToggle />
+      </motion.div>
+
       <motion.button
-        onClick={handleComplete}
+        onClick={() => {
+          playSound(SOUND_NAMES.SLIDE_WHOOSH);
+          handleComplete();
+        }}
         className="absolute bottom-8 right-8 md:bottom-12 md:right-12 z-30 group"
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
