@@ -2,13 +2,14 @@
 
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Wallet, Copy } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { ArrowLeft, Wallet, Copy, CheckCircle, XCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useWrapStore } from '../store/wrapStore';
 import { connectFreighter } from '../utils/walletConnect';
 import { ProgressIndicator } from '../components/ProgressIndicator';
 import { MuteToggle } from '../components/MuteToggle';
-import { StrKey } from 'stellar-sdk';
+import { useStellarAddressValidation } from '../../src/hooks/useStellarAddressValidation';
+import { indexerService } from '../../src/services/indexerService';
 import { useSound } from '../hooks/useSound';
 import { SOUND_NAMES } from '../utils/soundManager';
 
@@ -18,10 +19,18 @@ export default function ConnectPage() {
   const router = useRouter();
   const { setAddress, setError, setStatus, network } = useWrapStore();
   const { playSound } = useSound();
-  const [walletAddress, setWalletAddress] = useState("");
+
+  const {
+    address: walletAddress,
+    validationState,
+    errorMessage,
+    setValidationState,
+    handleAddressChange: handleRawAddressChange,
+    isValid
+  } = useStellarAddressValidation({ network });
+
   const [isConnecting, setIsConnecting] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
-  const [isValidStellarAddress, setIsValidStellarAddress] = useState<boolean>(false);
 
 
 
@@ -44,19 +53,33 @@ export default function ConnectPage() {
 
 
   useEffect(() => {
-    if (!walletAddress) {
-      setIsValidStellarAddress(false);
-      return;
+    let isMounted = true;
+
+    const triggerIndexing = async () => {
+      if (validationState === 'valid' && walletAddress) {
+        setValidationState('indexing');
+        try {
+          await indexerService.fetchAccountTransactions(walletAddress);
+          if (isMounted) {
+            setValidationState('valid');
+            // Auto-trigger the "Start Wrapping" flow after indexing if desired, 
+            // or just let user click the button. We'll just let them click for now.
+          }
+        } catch {
+          if (isMounted) {
+            setValidationState('error');
+            setLocalError("Failed to index account transactions");
+          }
+        }
+      }
+    };
+
+    if (validationState === 'valid') {
+      triggerIndexing();
     }
 
-    const address = walletAddress.trim();
-
-    const isValid =
-      StrKey.isValidEd25519PublicKey(address) ||
-      StrKey.isValidMed25519PublicKey(address); // optional: muxed accounts (M...)
-
-    setIsValidStellarAddress(isValid);
-  }, [walletAddress]);
+    return () => { isMounted = false; };
+  }, [validationState, walletAddress, setValidationState]);
 
 
   const handleFreighterConnect = async () => {
@@ -90,8 +113,8 @@ export default function ConnectPage() {
     }
 
     // Validate Stellar address format
-    if (!isValidStellarAddress) {
-      setLocalError("Invalid wallet address. Please check and try again.");
+    if (!isValid) {
+      setLocalError("Invalid wallet address. Please wait for validation.");
       setError("Invalid wallet address");
       return;
     }
@@ -102,7 +125,7 @@ export default function ConnectPage() {
   };
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setWalletAddress(e.target.value);
+    handleRawAddressChange(e.target.value);
     setLocalError(null);
     setError(null);
   };
@@ -110,7 +133,7 @@ export default function ConnectPage() {
   const handlePaste = async () => {
     try {
       const text = await navigator.clipboard.readText();
-      setWalletAddress(text);
+      handleRawAddressChange(text);
       setLocalError(null);
       setError(null);
       // Keep focus on input after paste
@@ -128,7 +151,7 @@ export default function ConnectPage() {
 
   const handleDemoMode = () => {
     const demoAddress = "GDEMOADDRESSFORSTELLARWRAPDEMOPURPOSES12345678";
-    setWalletAddress(demoAddress);
+    handleRawAddressChange(demoAddress);
     setTimeout(() => {
       setAddress(demoAddress);
       setStatus("loading");
@@ -435,20 +458,94 @@ export default function ConnectPage() {
                   style={{ color: "var(--color-theme-primary)" }}
                 />
               </motion.button>
+              <AnimatePresence mode="popLayout">
+                {validationState === 'validating' || validationState === 'indexing' ? (
+                  <motion.div
+                    key="loading"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    className="absolute right-12 top-1/2 -translate-y-1/2 pr-2 border-r border-white/20"
+                  >
+                    <div className="w-5 h-5 border-2 border-theme-primary border-t-transparent rounded-full animate-spin" />
+                  </motion.div>
+                ) : validationState === 'valid' ? (
+                  <motion.div
+                    key="valid"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    className="absolute right-12 top-1/2 -translate-y-1/2 pr-2 border-r border-white/20"
+                  >
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                  </motion.div>
+                ) : (validationState === 'invalid' || validationState === 'not-found' || validationState === 'error') ? (
+                  <motion.div
+                    key="invalid"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    className="absolute right-12 top-1/2 -translate-y-1/2 pr-2 border-r border-white/20"
+                  >
+                    <XCircle className="w-5 h-5 text-red-500" />
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
             </div>
 
-            {/* Error Message */}
-            {localError && (
-              <div
-                id="address-error"
-                role="alert"
-                aria-live="assertive"
-                aria-atomic="true"
-                className="mb-6 p-4 bg-red-500/10 border-2 border-red-500/50 rounded-xl text-red-400 text-sm text-center font-medium"
-              >
-                ⚠️ {localError}
-              </div>
-            )}
+            {/* Validation State Feedback Messages */}
+            <AnimatePresence mode="popLayout">
+              {validationState === 'validating' && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="mb-6 p-4 bg-yellow-500/10 border-2 border-yellow-500/50 rounded-xl text-yellow-500 text-sm text-center font-medium"
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin" />
+                    Checking account...
+                  </div>
+                </motion.div>
+              )}
+              {validationState === 'indexing' && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="mb-6 p-4 bg-theme-primary/10 border-2 border-theme-primary/50 rounded-xl text-theme-primary text-sm text-center font-medium"
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-theme-primary border-t-transparent rounded-full animate-spin" />
+                    Indexing transactions...
+                  </div>
+                </motion.div>
+              )}
+              {errorMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  id="address-error"
+                  role="alert"
+                  aria-live="assertive"
+                  aria-atomic="true"
+                  className="mb-6 p-4 bg-red-500/10 border-2 border-red-500/50 rounded-xl text-red-400 text-sm text-center font-medium"
+                >
+                  ⚠️ {errorMessage}
+                </motion.div>
+              )}
+              {localError && !errorMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="mb-6 p-4 bg-red-500/10 border-2 border-red-500/50 rounded-xl text-red-400 text-sm text-center font-medium"
+                >
+                  ⚠️ {localError}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <motion.button
               ref={connectButtonRef}

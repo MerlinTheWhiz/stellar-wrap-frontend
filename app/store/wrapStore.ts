@@ -5,6 +5,7 @@ import {
   getContractAddress,
   getContractConfigForAllNetworks,
 } from "../../config/contracts";
+import { CacheStore } from "@/app/utils/indexer";
 
 export type WrapPeriod = "weekly" | "monthly" | "yearly";
 
@@ -39,6 +40,16 @@ type WrapStatus = "idle" | "loading" | "ready" | "error";
 
 /** Contract addresses per network (from config/env), synced on load and network change */
 export type ContractAddressesByNetwork = Partial<Record<Network, string>>;
+// In-memory cache for API results
+let cacheStore: CacheStore = {};
+
+export function getCacheStore(): CacheStore {
+  return cacheStore;
+}
+
+export function resetCache(): void {
+  cacheStore = {};
+}
 
 interface WrapStoreState {
   address: string | null;
@@ -131,3 +142,4 @@ export const useWrapStore = create<WrapStoreState>()(
   )
 );
 
+}));
